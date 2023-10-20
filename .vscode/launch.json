@@ -1,0 +1,28 @@
+{
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "sourceLanguages": [
+                "swift"
+            ],
+            "name": "Debug BitfieldClient",
+            "program": "${workspaceFolder:swift-bitfield}/.build/debug/BitfieldClient",
+            "args": [],
+            "cwd": "${workspaceFolder:swift-bitfield}",
+            "preLaunchTask": "swift: Build Debug BitfieldClient"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "sourceLanguages": [
+                "swift"
+            ],
+            "name": "Release BitfieldClient",
+            "program": "${workspaceFolder:swift-bitfield}/.build/release/BitfieldClient",
+            "args": [],
+            "cwd": "${workspaceFolder:swift-bitfield}",
+            "preLaunchTask": "swift: Build Release BitfieldClient"
+        }
+    ]
+}
