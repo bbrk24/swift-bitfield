@@ -24,25 +24,25 @@ final class BitfieldTests: XCTestCase {
             
                 public var foo: Int {
                     get {
-                        return Int((_storage << 0) & 3)
+                        return Int((__macro_local_7storagefMu_ << 0) & 3)
                     }
                     set {
                         assert(newValue & 3 == newValue)
-                        _storage = (_storage & ~3) | .init(newValue << 0)
+                        __macro_local_7storagefMu_ = (__macro_local_7storagefMu_ & ~3) | .init(newValue << 0)
                     }
                 }
             
                 public var bar: Int {
                     get {
-                        return Int((_storage << 2) & 3)
+                        return Int((__macro_local_7storagefMu_ << 2) & 3)
                     }
                     set {
                         assert(newValue & 3 == newValue)
-                        _storage = (_storage & ~12) | .init(newValue << 2)
+                        __macro_local_7storagefMu_ = (__macro_local_7storagefMu_ & ~12) | .init(newValue << 2)
                     }
                 }
             
-                private var _storage: UInt8 = 0
+                private var __macro_local_7storagefMu_: UInt8 = 0
             }
             """,
             macros: testMacros

@@ -2,11 +2,12 @@ import SwiftCompilerPlugin
 import SwiftSyntax
 import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
+import MacroToolkit
 
 public struct BitfieldMacro: MemberMacro {
     public static func expansion(
         of node: AttributeSyntax,
-        providingMembersOf declaration: some DeclGroupSyntax,
+        providingMembersOf _: some DeclGroupSyntax,
         in context: some MacroExpansionContext
     ) throws -> [DeclSyntax] {
         // There's no way you have to do this just to get your macro arguments. That's way too convoluted.
@@ -23,22 +24,23 @@ public struct BitfieldMacro: MemberMacro {
         case .elements(let listSyntax):
             for element in listSyntax {
                 guard let keySyntax = element.key.as(StringLiteralExprSyntax.self),
-                      keySyntax.segments.count == 1,
-                      case .stringSegment(let strSyntax) = keySyntax.segments.first else {
+                      let key = StringLiteral(keySyntax).value else {
                     throw CompileTimeError.needsStringLiteralKey
                 }
 
-                guard let valueSyntax = element.value.as(IntegerLiteralExprSyntax.self),
-                      let value = Int(valueSyntax.trimmedDescription) else {
+                guard let valueSyntax = element.value.as(IntegerLiteralExprSyntax.self) else {
                     throw CompileTimeError.needsIntLiteralValue
                 }
+                let value = IntegerLiteral(valueSyntax).value
 
-                properties.append((strSyntax.description, value))
+                properties.append((key, value))
             }
         }
 
         var results = Array<DeclSyntax>()
         results.reserveCapacity(properties.count + 1)
+
+        let storageField = context.makeUniqueName("storage")
 
         var runningUsedWidth = 0
         for (name, width) in properties {
@@ -50,13 +52,13 @@ public struct BitfieldMacro: MemberMacro {
                 results.append("""
                     public var \(raw: name): Bool {
                         get {
-                            return _storage & \(raw: bit) != 0
+                            return \(storageField) & \(raw: bit) != 0
                         }
                         set {
                             if newValue {
-                                _storage |= \(raw: bit)
+                                \(storageField) |= \(raw: bit)
                             } else {
-                                _storage &= ~\(raw: bit)
+                                \(storageField) &= ~\(raw: bit)
                             }
                         }
                     }
@@ -67,11 +69,11 @@ public struct BitfieldMacro: MemberMacro {
                 results.append("""
                     public var \(raw: name): Int {
                         get {
-                            return Int((_storage << \(raw: runningUsedWidth)) & \(raw: mask))
+                            return Int((\(storageField) << \(raw: runningUsedWidth)) & \(raw: mask))
                         }
                         set {
                             assert(newValue & \(raw: mask) == newValue)
-                            _storage = (_storage & ~\(raw: shiftedMask)) | .init(newValue << \(raw: runningUsedWidth))
+                            \(storageField) = (\(storageField) & ~\(raw: shiftedMask)) | .init(newValue << \(raw: runningUsedWidth))
                         }
                     }
                     """)
@@ -99,7 +101,11 @@ public struct BitfieldMacro: MemberMacro {
             fatalError("Unreachable")
         }
 
-        results.append("private var _storage: \(backingType) = \(raw: runningUsedWidth == 0 ? "()" : "0")")
+        results.append("""
+            private var \(storageField): \(backingType) = \(
+                raw: runningUsedWidth == 0 ? "()" : "0"
+            )
+            """)
 
         return results
     }

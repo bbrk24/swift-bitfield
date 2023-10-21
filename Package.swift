@@ -14,6 +14,7 @@ let package = Package(
     dependencies: [
         // Depend on the Swift 5.9 release of SwiftSyntax
         .package(url: "https://github.com/apple/swift-syntax.git", from: "509.0.0"),
+        .package(url: "https://github.com/stackotter/swift-macro-toolkit", .upToNextMinor(from: "0.3.1"))
     ],
     targets: [
         // Macro implementation that performs the source transformation of a macro.
@@ -21,7 +22,8 @@ let package = Package(
             name: "BitfieldMacros",
             dependencies: [
                 .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
-                .product(name: "SwiftCompilerPlugin", package: "swift-syntax")
+                .product(name: "SwiftCompilerPlugin", package: "swift-syntax"),
+                .product(name: "MacroToolkit", package: "swift-macro-toolkit"),
             ]
         ),
 
